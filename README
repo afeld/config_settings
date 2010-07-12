@@ -1,0 +1,29 @@
+Ruby Developer Test
+Applicant: Aidan Feldman
+
+PROBLEM
+
+"Write a model (ActiveRecord-based) for storing global configuration settings. It will be used for storing single values, for example an email address to send error emails to, or a flag enable/disable a particular feature. The interface must be simple and convenient, - it should be possible to read and write specific configuration items. It must be possible to store values of these 4 types: string, integer, float and boolean. The model should come with a unit test and a migration.
+
+Bonus: add caching within the model so that values are cached in regular Rails cache to minimize db load."
+
+
+SUMMARY
+
+I spent a little under four hours on this, much of which was debating whether to store the setting in a single table, or use polymorphism across tables.  I ended up implementing all of the former and most of the latter, but the single-table design was far, far simpler to comprehend.
+
+
+STORAGE
+
+In this exercise, the configuration settings are key-value pairs.  Because these will most likely only be accessed by providing the key, it is not necessary for the "values" of the pair to be queryable.  A range query on them, for example, would not be useful.
+
+If it is assumed that there will be a relatively small number of configurations settings, they could be safely loaded into memory as a hash and accessed from there.  Since global options change infrequently (another assumption), it would be simplest to serialize/load this hash to/from a file, instead of using a database.
+
+Since the coding exercise specified that the model be ActiveRevord-based, though, I used a database.
+
+
+SCHEMA
+
+I stored each configuration option as a row in a single table.  There is a column for the "key", a column for the "value" (stored as a string), and a column for the "value" type (also stored as a string, since ActiveRecord doesn't really support enums).  The "value" is cast to the appropriate type upon request.
+
+I could have stored the setting values as their original types across multiple tables, and essentially create a "view" to join them all together, allowing the "value" attribute to accept a handful of types.  This, however requires a separate model for every type that is acceptable, and makes the data management more difficult.  For configuration options, which are accessed in the database rarely (assumption), it is not worth the extra code complexity.
